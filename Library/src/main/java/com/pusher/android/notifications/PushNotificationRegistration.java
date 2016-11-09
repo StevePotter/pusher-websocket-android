@@ -84,18 +84,7 @@ public class PushNotificationRegistration implements InternalRegistrationProgres
             @Override
             public void onReceive(Context context, Intent intent) {
                 String token = intent.getStringExtra(TOKEN_EXTRA_KEY);
-                if (token != null) {
-                    final TokenRegistry tokenRegistry = newTokenRegistry(registrationListener, context, PlatformType.GCM);
-                    try {
-                        tokenRegistry.receive(token);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    if (registrationListener != null) {
-                        registrationListener.onFailedRegistration(0, "Failed to get registration ID from GCM");
-                    }
-                }
+                registerGCMToken(context, token, registrationListener);
             }
         };
 
@@ -109,6 +98,25 @@ public class PushNotificationRegistration implements InternalRegistrationProgres
         applicationContext.startService(intent);
 
     }
+
+    /*
+    Registers a token received from GCM.  This should only be used if you are registering with GCM outside of this library.
+    */
+    public void registerGCMToken(Context context, String token, PushNotificationRegistrationListener registrationListener) {
+        if (token != null) {
+            final TokenRegistry tokenRegistry = newTokenRegistry(registrationListener, context, PlatformType.GCM);
+            try {
+                tokenRegistry.receive(token);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            if (registrationListener != null) {
+                registrationListener.onFailedRegistration(0, "Failed to get registration ID from GCM");
+            }
+        }
+    }
+
 
     public void registerFCM(Context context, final PushNotificationRegistrationListener listener) throws ManifestValidator.InvalidManifestException {
         manifestValidator.validateFCM(context);
